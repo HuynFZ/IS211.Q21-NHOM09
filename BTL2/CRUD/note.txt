@@ -1,0 +1,11 @@
+Bản pyorient gốc đang bị lỗi Protocol 38 với OrientDB 3.x, nên anh em mở Terminal/CMD lên và chạy lệnh này để cài bản vá lỗi:
+pip uninstall pyorient -y
+pip install pyorientdb
+(Nếu ai chưa cài pyorient thì chỉ cần chạy lệnh thứ 2).
+
+trong file config.py
+đổi lại IP của mình
+
+LƯU Ý CHO KHANG (ETL & AIRFLOW)
+Bộ code trong thư mục CRUD này chỉ dùng để test logic Đỉnh/Cạnh và làm bằng chứng cho báo cáo.
+Khang KHÔNG dùng script này để đổ 1.2 triệu dòng nhé (vì chạy vòng lặp Python thông thường sẽ rất chậm). Khang cứ dùng Apache Airflow bắn thẳng vào Database sau khi Thái & Huy test và dọn dẹp xong.

@@ -1,0 +1,51 @@
+{
+  "autoDeploy": true,
+  "readQuorum": 1,
+  "writeQuorum": 1,
+  "executionMode": "synchronous",
+  "readYourWrites": true,
+  "servers": {
+    "*": "master"
+  },
+  "clusters": {
+    "internal": {
+    },
+    "danh_muc": {
+      "servers": [ "server1", "server2", "server3", "server4" ]
+    },
+    "nha_xuat_ban": {
+      "servers": [ "server1", "server2", "server3", "server4" ]
+    },
+    "tac_gia": {
+      "servers": [ "server1", "server2", "server3", "server4" ]
+    },
+    "sach_vpp": {
+      "servers": [ "server1", "server2", "server3", "server4" ]
+    },
+    "chi_nhanh": {
+      "servers": [ "server1", "server2", "server3", "server4" ]
+    },
+
+    "khach_hang_cn1": { "servers": [ "server1", "server2" ] },
+    "hoa_don_cn1": { "servers": [ "server1", "server2" ] },
+    "nhan_vien_cn1": { "servers": [ "server1", "server2" ] },
+    "co_trong_kho_cn1": { "servers": [ "server1", "server2" ] },
+    "bao_gom_cn1": { "servers": [ "server1", "server2" ] },
+
+    "khach_hang_cn2": { "servers": [ "server3" ] },
+    "hoa_don_cn2": { "servers": [ "server3" ] },
+    "nhan_vien_cn2": { "servers": [ "server3" ] },
+    "co_trong_kho_cn2": { "servers": [ "server3" ] },
+    "bao_gom_cn2": { "servers": [ "server3" ] },
+
+    "khach_hang_cn3": { "servers": [ "server4" ] },
+    "hoa_don_cn3": { "servers": [ "server4" ] },
+    "nhan_vien_cn3": { "servers": [ "server4" ] },
+    "co_trong_kho_cn3": { "servers": [ "server4" ] },
+    "bao_gom_cn3": { "servers": [ "server4" ] },
+
+    "*": {
+      "servers": [ "server1", "server2", "server3", "server4" ]
+    }
+  }
+}
