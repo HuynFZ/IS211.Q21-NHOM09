@@ -1,0 +1,104 @@
+/*
+Câu 1: 
+Tìm những hóa đơn tại CN1 có giá trị cao bất thường (lớn hơn 3 lần độ lệch chuẩn doanh thu trung bình của 2 chi nhánh CN1 và CN2).
+*/
+SELECT MaHD, TongTien 
+FROM cluster:hoa_don_cn1
+LET $he_thong = (
+    SELECT AVG(TongTien) AS avg_val 
+    FROM (
+        SELECT EXPAND(UNIONALL(
+            (SELECT FROM cluster:hoa_don_cn1), 
+            (SELECT FROM cluster:hoa_don_cn2)
+        ))
+    )
+)
+WHERE TongTien > eval('$he_thong[0].avg_val * 3');
+
+28  ; 16,898   ;  11,643   ;  16,988;  8   ;  8  ; 14; 15; 15,968 ; 13,8
+
+/*
+Câu 2: 
+Phân tích Khách hàng có tổng chi tiêu > 10tr tại CN1 và có giao dịch chéo tại CN2
+*/
+SELECT MaKH, TenKH, SODIENTHOAI 
+FROM KHACH_HANG
+LET 
+    $tap1 = (
+        SELECT kh_id FROM (
+            SELECT out('CUA_KHACH_HANG')[0] AS kh_id, SUM(TongTien) AS tong_chi 
+            FROM cluster:hoa_don_cn1 
+            GROUP BY out('CUA_KHACH_HANG')[0]
+        ) WHERE tong_chi > 10000000
+    ),
+    $tap2 = (
+        SELECT out('CUA_KHACH_HANG')[0] AS kh_id 
+        FROM cluster:hoa_don_cn2
+    )
+WHERE @rid IN $tap1.kh_id 
+  AND @rid IN $tap2.kh_id;
+
+Thời gian chạy: 53 ;  43 ; 29  ;
+
+/*
+Câu 3: 
+Liệt kê các mã sản phẩm nằm trong Top 10% (Limit 50) sản phẩm bán chạy nhất tại CN1 và cũng nằm trong Top bán chạy tại CN2.
+*/
+SELECT MaSP, TenSP FROM (
+    SELECT inV().MaSP as MaSP, inV().TenSP as TenSP, SUM(SoLuong) as TongSL
+    FROM cluster:bao_gom_cn1
+    GROUP BY inV().MaSP, inV().TenSP
+    ORDER BY TongSL DESC LIMIT 50
+)
+LET $top_cn2 = (
+    SELECT inV().MaSP as MaSP, SUM(SoLuong) as TongSL
+    FROM cluster:bao_gom_cn2
+    GROUP BY inV().MaSP, inV().TenSP
+    ORDER BY TongSL DESC LIMIT 50
+)
+WHERE MaSP IN $top_cn2.MaSP;
+
+ Thời gian chạy: 79,844 ; 117,16
+---
+
+/*
+Câu 4: 
+Liệt kê các sản phẩm có số lượng tồn kho tại CN1 thấp (dưới 50) nhưng tại CN2 lại đang còn nhiều (trên 100).
+*/
+MATCH
+  {class: CHI_NHANH, as: cn1, where: (MaCN = 'CN01')} <-CO_TRONG_KHO {as: edge_cn1, where: (SoLuongTon < 50)}- {class: SACH_VPP, as: sp},
+  {as: sp} -CO_TRONG_KHO {as: edge_cn2, where: (SoLuongTon > 100)}-> {class: CHI_NHANH, as: cn2, where: (MaCN = 'CN02')}
+RETURN sp.MaSP, sp.TenSP, edge_cn1.SoLuongTon as Ton_MienBac, edge_cn2.SoLuongTon as Ton_MienTrung;
+
+
+--- Thời gian chạy: 3,4  5,806   5,896  ; 5,2  ; 3,17 ; 4,314
+---
+
+/*
+Câu 5: 
+Thống kê tỷ trọng đóng góp doanh thu của từng chi nhánh vào tổng doanh thu (chỉ xét CN1 & CN2), cho tác giả 'TG01'.
+*/
+SELECT MaCN, TongDoanhThuCN, 
+       eval('(TongDoanhThuCN * 100) / $he_thong[0].Total') AS TyTrong
+FROM (
+    SELECT out('TAI_CHI_NHANH').MaCN AS MaCN, SUM(TongTien) AS TongDoanhThuCN
+    FROM (
+        SELECT EXPAND(UNIONALL(
+            (SELECT FROM cluster:hoa_don_cn1), 
+            (SELECT FROM cluster:hoa_don_cn2)
+        ))
+    )
+    WHERE 'TG01' IN out('BAO_GOM').out('TAC_GIA_LA').MaTG
+    GROUP BY out('TAI_CHI_NHANH').MaCN
+)
+LET $he_thong = (
+    SELECT SUM(TongTien) AS Total
+    FROM (
+        SELECT EXPAND(UNIONALL(
+            (SELECT FROM cluster:hoa_don_cn1), 
+            (SELECT FROM cluster:hoa_don_cn2)
+        ))
+    )
+    WHERE 'TG01' IN out('BAO_GOM').out('TAC_GIA_LA').MaTG
+);
+Thời gian chạy: 132
